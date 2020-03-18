@@ -10,6 +10,7 @@ const dbName = "mosquiteer";
 var storage = multer.memoryStorage();
 var upload = multer({ storage: storage });
 var app = express();
+var Parser = require('rss-parser');
 
 app.use(
     bodyParser.urlencoded({
@@ -39,6 +40,13 @@ app.get("/getAllMosquitoBreeding", function (req, res) {
             });
     });
 });
+
+app.get("/getRSSFeed", async function (req, res) {
+    let parser = new Parser();
+    let feed = await parser.parseURL('https://www.reddit.com/.rss');
+    res.setHeader("content-type", "application/json");
+    res.send(feed);
+});
 app.get("/getAllMosquitoBreeding/:id", function (req, res) {
     MongoClient.connect(url, function (err, client) {
         const db2 = client.db(dbName);
@@ -46,9 +54,6 @@ app.get("/getAllMosquitoBreeding/:id", function (req, res) {
         db2
             .collection("mosquito_breeding_images")
             .findOne({ _id: ObjectId(req.params.id) }, function (err, results) {
-                console.log("results", results);
-                console.log("errors", err);
-
                 res.setHeader("content-type", "application/json");
                 res.send(results);
             });
